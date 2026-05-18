@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyGuru — Sistem Pengurusan Kelas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1f2937;
+    --border: #2a3441;
+    --accent: #00e5a0;
+    --accent2: #00b8d4;
+    --purple: #a78bfa;
+    --danger: #ff4d6d;
+    --warn: #fbbf24;
+    --text: #e6edf3;
+    --muted: #7d8fa3;
+    --hadir: #00e5a0;
+    --tidak: #ff4d6d;
+    --lewat: #fbbf24;
+    --sakit: #00b8d4;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(0,229,160,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 10% 80%, rgba(0,184,212,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 30% 30% at 50% 50%, rgba(167,139,250,0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,17,23,0.9);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; gap: 16px;
+    height: 64px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.4rem;
+    letter-spacing: -1px;
+  }
+  .logo .my { color: var(--accent); }
+  .logo .guru { color: var(--text); }
+  .logo-dot { color: var(--accent2); }
+  .logo-tagline {
+    font-size: 0.7rem; color: var(--muted); font-weight: 400;
+    letter-spacing: 0.5px; margin-left: 2px;
+  }
+  header .date-pill {
+    margin-left: auto;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.78rem; color: var(--muted); font-weight: 500;
+  }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    display: flex; gap: 4px;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 4px;
+    margin-left: 24px;
+  }
+  .nav-tab {
+    padding: 7px 18px;
+    border-radius: 9px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.78rem;
+    cursor: pointer; border: none;
+    background: transparent; color: var(--muted);
+    transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .nav-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+  .nav-tab:hover:not(.active) { color: var(--text); }
+
+  /* ── WRAPPER ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SETUP CARD ── */
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px; margin-bottom: 28px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .setup-card h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    margin-bottom: 20px; color: var(--accent);
+    text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;
+  }
+  .form-row {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 12px; align-items: end;
+  }
+  label {
+    display: block; font-size: 0.78rem; font-weight: 500;
+    color: var(--muted); margin-bottom: 6px; letter-spacing: 0.3px;
+  }
+  input, select, textarea {
+    width: 100%; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,160,0.12);
+  }
+  select option { background: #1f2937; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 22px; border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 0.85rem;
+    cursor: pointer; border: none;
+    transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #00c97a); color: #0d1117; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,229,160,0.35); }
+  .btn-purple { background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff; }
+  .btn-purple:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.35); }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: rgba(255,77,109,0.12); border: 1px solid rgba(255,77,109,0.3); color: var(--danger); }
+  .btn-danger:hover { background: rgba(255,77,109,0.2); }
+
+  .student-input-area { margin-top: 20px; }
+  .student-input-area textarea { min-height: 120px; resize: vertical; font-size: 0.85rem; line-height: 1.6; }
+  .hint { font-size: 0.73rem; color: var(--muted); margin-top: 6px; }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 24px;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-label { font-size: 0.72rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1; }
+  .stat-value.hadir { color: var(--hadir); }
+  .stat-value.tidak { color: var(--tidak); }
+  .stat-value.lewat { color: var(--lewat); }
+  .stat-value.sakit { color: var(--sakit); }
+  .stat-value.hantar { color: var(--accent2); }
+  .stat-value.belum  { color: var(--purple); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+  .sec-header h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px;
+  }
+  .class-badge {
+    background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.3);
+    color: var(--accent); border-radius: 999px; padding: 4px 12px;
+    font-size: 0.78rem; font-weight: 600;
+  }
+  .hw-badge {
+    background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.3);
+    color: var(--purple); border-radius: 999px; padding: 4px 12px;
+    font-size: 0.78rem; font-weight: 600;
+  }
+
+  /* filter row */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; animation: fadeUp 0.5s 0.2s ease both; }
+  .filter-row input { flex: 1; }
+  .filter-btn {
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--muted);
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.08); }
+  .filter-btn.active-purple { border-color: var(--purple); color: var(--purple); background: rgba(167,139,250,0.08); }
+
+  /* table */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+    animation: fadeUp 0.5s 0.25s ease both;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--surface2); border-bottom: 1px solid var(--border); }
+  th {
+    padding: 12px 18px; text-align: left;
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  tbody tr { border-bottom: 1px solid rgba(42,52,65,0.5); transition: background 0.15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  td { padding: 14px 18px; font-size: 0.88rem; vertical-align: middle; }
+  .no-col { color: var(--muted); font-size: 0.8rem; width: 40px; }
+  .name-col { font-weight: 500; }
+
+  /* status buttons (kehadiran) */
+  .status-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .status-btn {
+    padding: 5px 13px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s; letter-spacing: 0.3px;
+  }
+  .status-btn.hadir { border-color: rgba(0,229,160,0.3); color: var(--hadir); background: rgba(0,229,160,0.06); }
+  .status-btn.tidak { border-color: rgba(255,77,109,0.3); color: var(--tidak); background: rgba(255,77,109,0.06); }
+  .status-btn.lewat { border-color: rgba(251,191,36,0.3); color: var(--lewat); background: rgba(251,191,36,0.06); }
+  .status-btn.sakit { border-color: rgba(0,184,212,0.3);  color: var(--sakit); background: rgba(0,184,212,0.06); }
+  .status-btn.hadir.active { background: var(--hadir);  color: #0d1117; border-color: var(--hadir); }
+  .status-btn.tidak.active { background: var(--tidak);  color: #fff;    border-color: var(--tidak); }
+  .status-btn.lewat.active { background: var(--lewat);  color: #0d1117; border-color: var(--lewat); }
+  .status-btn.sakit.active { background: var(--sakit);  color: #0d1117; border-color: var(--sakit); }
+
+  /* hw status buttons */
+  .hw-btn {
+    padding: 5px 14px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; border: 1px solid transparent;
+    transition: all 0.15s; letter-spacing: 0.3px;
+  }
+  .hw-btn.hantar { border-color: rgba(0,184,212,0.3); color: var(--accent2); background: rgba(0,184,212,0.06); }
+  .hw-btn.belum  { border-color: rgba(167,139,250,0.3); color: var(--purple); background: rgba(167,139,250,0.06); }
+  .hw-btn.lewat  { border-color: rgba(251,191,36,0.3); color: var(--warn); background: rgba(251,191,36,0.06); }
+  .hw-btn.hantar.active { background: var(--accent2); color: #0d1117; border-color: var(--accent2); }
+  .hw-btn.belum.active  { background: var(--purple);  color: #fff;    border-color: var(--purple); }
+  .hw-btn.lewat.active  { background: var(--warn);    color: #0d1117; border-color: var(--warn); }
+
+  .note-input {
+    padding: 6px 10px; font-size: 0.78rem;
+    border-radius: 8px; width: 150px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+  }
+  .note-input:focus { color: var(--text); }
+
+  .progress-col { width: 100px; }
+  .mini-bar { height: 4px; border-radius: 99px; background: var(--border); overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.4s ease; }
+  .mini-bar-fill.purple { background: var(--purple); }
+
+  /* bottom toolbar */
+  .bottom-toolbar {
+    display: flex; align-items: center; gap: 12px; margin-top: 20px;
+    animation: fadeUp 0.5s 0.3s ease both; flex-wrap: wrap;
+  }
+
+  /* divider */
+  .section-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 48px 0 32px;
+  }
+  .section-divider .div-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider .div-label {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 0.72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  /* hw setup card */
+  .hw-setup-card {
+    background: var(--surface);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 20px; padding: 28px; margin-bottom: 24px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .hw-setup-card h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    margin-bottom: 16px; color: var(--purple);
+    text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;
+  }
+  .hw-form-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 12px; align-items: end;
+  }
+
+  /* hw stats */
+  .hw-stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 24px;
+  }
+  .hw-stat-card {
+    background: var(--surface); border: 1px solid rgba(167,139,250,0.15);
+    border-radius: 14px; padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 4px;
+    transition: border-color 0.2s;
+  }
+  .hw-stat-card:hover { border-color: var(--purple); }
+
+  /* assignment list */
+  .assignment-list {
+    display: flex; flex-direction: column; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .assignment-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px 20px;
+    cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .assignment-card:hover { border-color: var(--purple); transform: translateX(3px); }
+  .assignment-card.selected { border-color: var(--purple); background: rgba(167,139,250,0.05); }
+  .a-icon { font-size: 1.6rem; }
+  .a-info { flex: 1; }
+  .a-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+  .a-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .a-progress { text-align: right; }
+  .a-pct { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.4rem; }
+  .a-pct.good { color: var(--accent2); }
+  .a-pct.mid  { color: var(--warn); }
+  .a-pct.bad  { color: var(--danger); }
+  .a-sub { font-size: 0.72rem; color: var(--muted); }
+  .a-delete { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; }
+  .a-delete:hover { color: var(--danger); background: rgba(255,77,109,0.1); }
+
+  /* modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 32px;
+    width: 540px; max-width: 95vw;
+    transform: translateY(20px); transition: transform 0.25s;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; }
+  .modal p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+  .print-preview { background: #fff; color: #111; border-radius: 10px; padding: 20px; font-size: 0.8rem; max-height: 300px; overflow-y: auto; }
+  .print-preview table { width: 100%; border-collapse: collapse; }
+  .print-preview th, .print-preview td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  .print-preview th { background: #f5f5f5; font-weight: 600; }
+
+  /* history */
+  #history-section { margin-top: 40px; animation: fadeUp 0.5s 0.3s ease both; }
+  #history-section h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .history-item:hover { border-color: var(--accent2); }
+  .history-item .hi-date { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; flex: 1; }
+  .history-item .hi-class { font-size: 0.78rem; color: var(--muted); }
+  .mini-badge { padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+  .mini-badge.hadir { background: rgba(0,229,160,0.15); color: var(--hadir); }
+  .mini-badge.tidak { background: rgba(255,77,109,0.15); color: var(--tidak); }
+
+  /* empty state */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state .big-icon { font-size: 3.5rem; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* toast */
+  .toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; font-size: 0.85rem; z-index: 300; display: flex; align-items: center; gap: 10px; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); max-width: 320px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast-icon { font-size: 1.2rem; }
+
+  /* no-students notice */
+  .no-students-notice {
+    background: var(--surface); border: 1px dashed var(--border);
+    border-radius: 16px; padding: 40px; text-align: center; color: var(--muted);
+    font-size: 0.88rem;
+  }
+  .no-students-notice strong { color: var(--text); display: block; font-size: 1rem; margin-bottom: 6px; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 700px) {
+    .form-row, .hw-form-row { grid-template-columns: 1fr; }
+    .stats-bar, .hw-stats-bar { grid-template-columns: 1fr 1fr; }
+    .note-input { width: 110px; }
+    header { padding: 0 14px; }
+    .nav-tabs { display: none; }
+    .wrapper { padding: 20px 14px 80px; }
+    th:last-child, td:last-child { display: none; }
+    .hw-form-row { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    body::before { display: none; }
+    header, .setup-card, .hw-setup-card, .filter-row, .bottom-toolbar, #history-section, .modal-overlay, .nav-tabs, .section-divider, .assignment-list, .hw-stats-bar { display: none !important; }
+    .table-wrap { border: 1px solid #ccc; border-radius: 0; }
+    .status-btn, .hw-btn { color: #000 !important; background: #eee !important; border: 1px solid #ccc !important; }
+    .note-input { border: none; background: none; color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="my">My</span><span class="guru">Guru</span><span class="logo-dot">.</span></div>
+  <div class="logo-tagline">Sistem Pengurusan Kelas</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('kehadiran',this)">📋 Kehadiran</button>
+    <button class="nav-tab" onclick="switchTab('kerja',this)">📚 Kerja Rumah</button>
+  </div>
+  <div class="date-pill" id="header-date">—</div>
+</header>
+
+<div class="wrapper">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1: KEHADIRAN
+  ══════════════════════════════════════ -->
+  <div class="section active" id="section-kehadiran">
+
+    <!-- Setup -->
+    <div class="setup-card" id="setup-card">
+      <h2>⚙ Tetapan Kelas</h2>
+      <div class="form-row">
+        <div>
+          <label>Nama Kelas / Subjek</label>
+          <input type="text" id="class-name" placeholder="cth: 4 Bestari — Matematik" />
+        </div>
+        <div>
+          <label>Tarikh</label>
+          <input type="date" id="class-date" />
+        </div>
+        <button class="btn btn-primary" onclick="applySetup()">Mulakan ✓</button>
+      </div>
+      <div class="student-input-area">
+        <label style="margin-top:16px;display:block;">Senarai Nama Pelajar</label>
+        <textarea id="student-list-input" placeholder="Masukkan satu nama setiap baris:&#10;Ahmad Faris&#10;Nurul Aina&#10;Tengku Zafran&#10;..."></textarea>
+        <p class="hint">💡 Salin terus dari Excel atau taip satu nama per baris. Data disimpan dalam penyemak imbas anda.</p>
+      </div>
+    </div>
+
+    <!-- Attendance area -->
+    <div id="attendance-area" style="display:none;">
+      <div class="stats-bar">
+        <div class="stat-card"><div class="stat-label">Jumlah Pelajar</div><div class="stat-value" id="stat-total" style="color:var(--text)">0</div></div>
+        <div class="stat-card"><div class="stat-label">✅ Hadir</div><div class="stat-value hadir" id="stat-hadir">0</div></div>
+        <div class="stat-card"><div class="stat-label">❌ Tidak Hadir</div><div class="stat-value tidak" id="stat-tidak">0</div></div>
+        <div class="stat-card"><div class="stat-label">🕐 Lewat / 🤒 Sakit</div><div class="stat-value lewat" id="stat-lain">0</div></div>
+      </div>
+
+      <div class="sec-header">
+        <h1 id="att-class-title">Kelas</h1>
+        <div class="class-badge" id="att-date-badge">—</div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="markAll('hadir')">✅ Semua Hadir</button>
+          <button class="btn btn-ghost" onclick="resetAll()">↺ Kosongkan</button>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <input type="text" id="search-input" placeholder="🔍  Cari nama pelajar..." oninput="renderTable()" />
+        <button class="filter-btn active" onclick="setFilter('semua',this)">Semua</button>
+        <button class="filter-btn" onclick="setFilter('hadir',this)">✅ Hadir</button>
+        <button class="filter-btn" onclick="setFilter('tidak',this)">❌ Tiada</button>
+        <button class="filter-btn" onclick="setFilter('lewat',this)">🕐 Lewat</button>
+        <button class="filter-btn" onclick="setFilter('sakit',this)">🤒 Sakit</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>No.</th><th>Nama Pelajar</th><th>Status</th><th>Nota</th><th class="progress-col">Rekod</th></tr></thead>
+          <tbody id="student-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="bottom-toolbar">
+        <button class="btn btn-primary" onclick="saveSession()">💾 Simpan Sesi</button>
+        <button class="btn btn-ghost" onclick="openExport()">📄 Eksport / Cetak</button>
+        <button class="btn btn-ghost" onclick="toggleSetup()">✏️ Edit Kelas</button>
+        <button class="btn btn-ghost" onclick="openAddStudent()" style="border-color:rgba(0,229,160,0.4);color:var(--accent);">➕ Tambah Pelajar</button>
+        <button class="btn btn-danger" onclick="clearStudents()" style="margin-left:auto;">🗑 Buang Pelajar</button>
+      </div>
+    </div>
+
+    <div id="history-section" style="display:none;">
+      <h2>📋 Rekod Lepas</h2>
+      <div class="history-list" id="history-list"></div>
+    </div>
+
+  </div><!-- /section kehadiran -->
+
+
+  <!-- ══════════════════════════════════════
+       SECTION 2: KERJA RUMAH
+  ══════════════════════════════════════ -->
+  <div class="section" id="section-kerja">
+
+    <!-- HW Setup -->
+    <div class="hw-setup-card">
+      <h2>📚 Tambah Kerja Rumah Baru</h2>
+      <div class="hw-form-row">
+        <div>
+          <label>Tajuk Kerja Rumah</label>
+          <input type="text" id="hw-title" placeholder="cth: Latihan Bab 3 — Pecahan" />
+        </div>
+        <div>
+          <label>Mata Pelajaran</label>
+          <input type="text" id="hw-subject" placeholder="cth: Matematik" />
+        </div>
+        <div>
+          <label>Tarikh Hantar</label>
+          <input type="date" id="hw-due" />
+        </div>
+        <button class="btn btn-purple" onclick="addAssignment()">➕ Tambah</button>
+      </div>
+      <p class="hint" style="margin-top:12px;">💡 Senarai pelajar diambil daripada sistem kehadiran. Sila tetapkan kelas dahulu di tab Kehadiran.</p>
+    </div>
+
+    <!-- No students warning -->
+    <div id="hw-no-students" class="no-students-notice" style="display:none;">
+      <strong>📋 Tiada senarai pelajar</strong>
+      Sila pergi ke tab <b>Kehadiran</b> dan tetapkan kelas terlebih dahulu supaya nama pelajar boleh digunakan di sini.
+    </div>
+
+    <!-- Assignment list -->
+    <div id="hw-assignment-area" style="display:none;">
+
+      <div id="assignment-list-wrap">
+        <div class="sec-header" style="margin-bottom:12px;">
+          <h1>Senarai Tugasan</h1>
+        </div>
+        <div class="assignment-list" id="assignment-list"></div>
+      </div>
+
+      <!-- Selected assignment tracker -->
+      <div id="hw-tracker" style="display:none;">
+        <div class="hw-stats-bar">
+          <div class="hw-stat-card"><div class="stat-label">Jumlah Pelajar</div><div class="stat-value" id="hw-stat-total" style="color:var(--text)">0</div></div>
+          <div class="hw-stat-card"><div class="stat-label">✅ Sudah Hantar</div><div class="stat-value hantar" id="hw-stat-hantar">0</div></div>
+          <div class="hw-stat-card"><div class="stat-label">⏰ Hantar Lewat</div><div class="stat-value lewat" id="hw-stat-lewat">0</div></div>
+          <div class="hw-stat-card"><div class="stat-label">❌ Belum Hantar</div><div class="stat-value belum" id="hw-stat-belum">0</div></div>
+        </div>
+
+        <div class="sec-header">
+          <h1 id="hw-tracker-title">Tugasan</h1>
+          <div class="hw-badge" id="hw-tracker-due">—</div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost" onclick="hwMarkAll('hantar')">✅ Semua Hantar</button>
+            <button class="btn btn-ghost" onclick="hwResetAll()">↺ Kosongkan</button>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <input type="text" id="hw-search" placeholder="🔍  Cari nama pelajar..." oninput="renderHwTable()" />
+          <button class="filter-btn active-purple active" onclick="setHwFilter('semua',this)">Semua</button>
+          <button class="filter-btn" onclick="setHwFilter('hantar',this)">✅ Hantar</button>
+          <button class="filter-btn" onclick="setHwFilter('lewat',this)">⏰ Lewat</button>
+          <button class="filter-btn" onclick="setHwFilter('belum',this)">❌ Belum</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>No.</th><th>Nama Pelajar</th><th>Status Hantar</th><th>Nota</th><th class="progress-col">Rekod</th></tr></thead>
+            <tbody id="hw-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="bottom-toolbar">
+          <button class="btn btn-purple" onclick="exportHwCSV()">⬇ Eksport CSV</button>
+          <button class="btn btn-ghost" onclick="window.print()">🖨 Cetak</button>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /section kerja -->
+
+</div><!-- /wrapper -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <h2>Eksport Kehadiran</h2>
+    <p>Pilih cara untuk menyimpan atau berkongsi data kehadiran hari ini.</p>
+    <div class="print-preview" id="print-preview-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeExport()">Tutup</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Cetak</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="add-student-modal">
+  <div class="modal">
+    <h2>➕ Tambah Pelajar</h2>
+    <p>Masukkan nama pelajar baru. Satu nama setiap baris untuk tambah ramai sekaligus.</p>
+    <div>
+      <label>Nama Pelajar</label>
+      <textarea id="add-student-input" placeholder="Ahmad Faris&#10;Nurul Aina&#10;..." style="min-height:120px;resize:vertical;font-size:0.85rem;line-height:1.6;"></textarea>
+      <p class="hint" style="margin-top:6px;">💡 Nama yang sudah wujud dalam senarai akan diabaikan secara automatik.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddStudent()">Batal</button>
+      <button class="btn btn-primary" onclick="confirmAddStudent()">➕ Tambah</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">✅</span>
+  <span id="toast-msg">Tersimpan!</span>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let students = [];
+let currentFilter = 'semua';
+let history = [];
+
+// Homework state
+let assignments = [];   // [{id, title, subject, due, records: {name: {status, note}}}]
+let activeAssignmentId = null;
+let hwFilter = 'semua';
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('class-date').value = today();
+  document.getElementById('hw-due').value = today();
+  document.getElementById('header-date').textContent = formatDate(today());
+  loadFromStorage();
+});
+
+function today() { return new Date().toISOString().split('T')[0]; }
+function formatDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('ms-MY', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+function formatDateShort(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('ms-MY', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ══════════════════════════════════════
+// TAB NAVIGATION
+// ══════════════════════════════════════
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('section-' + tab).classList.add('active');
+  if (tab === 'kerja') renderHwSection();
+}
+
+// ══════════════════════════════════════
+// KEHADIRAN — SETUP
+// ══════════════════════════════════════
+function applySetup() {
+  const raw   = document.getElementById('student-list-input').value.trim();
+  const kelas = document.getElementById('class-name').value.trim();
+  const tarikh= document.getElementById('class-date').value;
+  if (!kelas) { showToast('⚠️','Sila masukkan nama kelas!'); return; }
+  if (!raw)   { showToast('⚠️','Sila masukkan senarai pelajar!'); return; }
+  const names = raw.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (!names.length) { showToast('⚠️','Tiada nama pelajar ditemui.'); return; }
+  const existing = {};
+  students.forEach(s => { existing[s.name] = s; });
+  students = names.map(n => existing[n] || { name:n, status:null, note:'' });
+  document.getElementById('att-class-title').textContent = kelas;
+  document.getElementById('att-date-badge').textContent = tarikh ? tarikh.split('-').reverse().join('/') : '—';
+  document.getElementById('attendance-area').style.display = 'block';
+  document.getElementById('setup-card').style.display = 'none';
+  renderTable(); updateStats();
+  showToast('✅', `${students.length} pelajar dimuat!`);
+  saveToStorage();
+}
+function toggleSetup() {
+  const c = document.getElementById('setup-card');
+  c.style.display = c.style.display==='none' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════
+// KEHADIRAN — TABLE
+// ══════════════════════════════════════
+function renderTable() {
+  const q = document.getElementById('search-input')?.value.toLowerCase()||'';
+  const tbody = document.getElementById('student-tbody');
+  const visible = students.filter(s => {
+    return (!q||s.name.toLowerCase().includes(q)) &&
+           (currentFilter==='semua'||s.status===currentFilter);
+  });
+  if (!visible.length) {
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="big-icon">🔍</div><h3>Tiada pelajar ditemui</h3><p>Cuba ubah carian atau penapis.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = visible.map(s => {
+    const idx = students.indexOf(s);
+    return `<tr>
+      <td class="no-col">${idx+1}</td>
+      <td class="name-col">${escHtml(s.name)}</td>
+      <td><div class="status-group">
+        ${['hadir','tidak','lewat','sakit'].map(st=>
+          `<button class="status-btn ${st} ${s.status===st?'active':''}" onclick="setStatus(${idx},'${st}')">${stLabel(st)}</button>`
+        ).join('')}
+      </div></td>
+      <td><input class="note-input" type="text" placeholder="nota..." value="${escHtml(s.note)}" onchange="setNote(${idx},this.value)" /></td>
+      <td class="progress-col"><div class="mini-bar"><div class="mini-bar-fill" style="width:${s.status?100:0}%"></div></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function stLabel(st) { return {hadir:'✅ Hadir',tidak:'❌ Tiada',lewat:'🕐 Lewat',sakit:'🤒 Sakit'}[st]; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function setStatus(idx,st) { students[idx].status = students[idx].status===st?null:st; renderTable(); updateStats(); saveToStorage(); }
+function setNote(idx,val)  { students[idx].note = val; saveToStorage(); }
+
+function markAll(st) { students.forEach(s=>s.status=st); renderTable(); updateStats(); saveToStorage(); showToast('✅','Semua pelajar ditandakan Hadir.'); }
+function resetAll()  { students.forEach(s=>{s.status=null;s.note='';}); renderTable(); updateStats(); saveToStorage(); showToast('↺','Semua status dikosongkan.'); }
+
+function clearStudents() {
+  if(!confirm('Buang semua pelajar dalam sesi ini?')) return;
+  students=[];
+  document.getElementById('attendance-area').style.display='none';
+  document.getElementById('setup-card').style.display='block';
+  renderTable(); updateStats(); saveToStorage();
+}
+
+function setFilter(f,el) {
+  currentFilter=f;
+  document.querySelectorAll('#section-kehadiran .filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = students.length;
+  document.getElementById('stat-hadir').textContent = students.filter(s=>s.status==='hadir').length;
+  document.getElementById('stat-tidak').textContent = students.filter(s=>s.status==='tidak').length;
+  document.getElementById('stat-lain').textContent  = students.filter(s=>s.status==='lewat'||s.status==='sakit').length;
+}
+
+// ══════════════════════════════════════
+// KEHADIRAN — SESSION / HISTORY
+// ══════════════════════════════════════
+function saveSession() {
+  const kelas  = document.getElementById('att-class-title').textContent;
+  const tarikh = document.getElementById('class-date').value || today();
+  history.unshift({ id:Date.now(), kelas, tarikh, students: JSON.parse(JSON.stringify(students)) });
+  if (history.length>20) history.pop();
+  saveToStorage(); renderHistory();
+  showToast('💾','Sesi kehadiran disimpan!');
+}
+function renderHistory() {
+  const sec  = document.getElementById('history-section');
+  const list = document.getElementById('history-list');
+  if (!history.length) { sec.style.display='none'; return; }
+  sec.style.display='block';
+  list.innerHTML = history.map((h,i)=>{
+    const hadir=h.students.filter(s=>s.status==='hadir').length;
+    const tidak=h.students.filter(s=>s.status==='tidak').length;
+    return `<div class="history-item" onclick="loadSession(${i})">
+      <div><div class="hi-date">${escHtml(h.kelas)}</div><div class="hi-class">${formatDate(h.tarikh)}</div></div>
+      <span class="mini-badge hadir">✅ ${hadir}</span>
+      <span class="mini-badge tidak">❌ ${tidak}</span>
+      <span style="font-size:0.75rem;color:var(--muted);margin-left:4px;">/ ${h.students.length}</span>
+    </div>`;
+  }).join('');
+}
+function loadSession(i) {
+  const h=history[i];
+  students=JSON.parse(JSON.stringify(h.students));
+  document.getElementById('class-name').value=h.kelas;
+  document.getElementById('class-date').value=h.tarikh;
+  document.getElementById('att-class-title').textContent=h.kelas;
+  document.getElementById('att-date-badge').textContent=h.tarikh.split('-').reverse().join('/');
+  document.getElementById('student-list-input').value=h.students.map(s=>s.name).join('\n');
+  document.getElementById('attendance-area').style.display='block';
+  document.getElementById('setup-card').style.display='none';
+  renderTable(); updateStats();
+  showToast('📋',`Sesi ${h.kelas} dimuatkan.`);
+}
+
+// ══════════════════════════════════════
+// KEHADIRAN — TAMBAH PELAJAR
+// ══════════════════════════════════════
+function openAddStudent() {
+  document.getElementById('add-student-input').value='';
+  document.getElementById('add-student-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('add-student-input').focus(),200);
+}
+function closeAddStudent() { document.getElementById('add-student-modal').classList.remove('open'); }
+function confirmAddStudent() {
+  const raw=document.getElementById('add-student-input').value.trim();
+  if(!raw){showToast('⚠️','Sila masukkan sekurang-kurangnya satu nama.');return;}
+  const existing=new Set(students.map(s=>s.name.toLowerCase()));
+  const newNames=raw.split('\n').map(s=>s.trim()).filter(Boolean);
+  const toAdd=newNames.filter(n=>!existing.has(n.toLowerCase()));
+  const skipped=newNames.length-toAdd.length;
+  toAdd.forEach(n=>students.push({name:n,status:null,note:''}));
+  document.getElementById('student-list-input').value=students.map(s=>s.name).join('\n');
+  closeAddStudent(); renderTable(); updateStats(); saveToStorage();
+  if(toAdd.length&&skipped) showToast('➕',`${toAdd.length} pelajar ditambah. ${skipped} diabaikan.`);
+  else if(toAdd.length)      showToast('➕',`${toAdd.length} pelajar berjaya ditambah!`);
+  else                       showToast('⚠️','Semua nama sudah wujud dalam senarai.');
+  // sync to hw assignments
+  syncStudentsToAssignments();
+}
+
+// ══════════════════════════════════════
+// KEHADIRAN — EXPORT
+// ══════════════════════════════════════
+function openExport() {
+  const kelas=document.getElementById('att-class-title').textContent;
+  const tarikh=document.getElementById('class-date').value||today();
+  const rows=students.map((s,i)=>`<tr><td>${i+1}</td><td>${escHtml(s.name)}</td><td>${s.status||'—'}</td><td>${escHtml(s.note)}</td></tr>`).join('');
+  document.getElementById('print-preview-content').innerHTML=`<div style="font-weight:700;margin-bottom:8px;">${escHtml(kelas)} — ${formatDate(tarikh)}</div><table><thead><tr><th>No.</th><th>Nama</th><th>Status</th><th>Nota</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('export-modal').classList.add('open');
+}
+function closeExport() { document.getElementById('export-modal').classList.remove('open'); }
+function exportCSV() {
+  const kelas=document.getElementById('att-class-title').textContent;
+  const tarikh=document.getElementById('class-date').value||today();
+  let csv='No.,Nama,Status,Nota\n';
+  students.forEach((s,i)=>{ csv+=`${i+1},"${s.name}","${s.status||''}","${s.note}"\n`; });
+  dlCSV(csv,`kehadiran_${kelas.replace(/\s+/g,'_')}_${tarikh}.csv`);
+  showToast('⬇','Fail CSV dimuat turun!');
+}
+function dlCSV(csv,filename) {
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════
+// KERJA RUMAH — ASSIGNMENTS
+// ══════════════════════════════════════
+function renderHwSection() {
+  if (!students.length) {
+    document.getElementById('hw-no-students').style.display='block';
+    document.getElementById('hw-assignment-area').style.display='none';
+    return;
+  }
+  document.getElementById('hw-no-students').style.display='none';
+  document.getElementById('hw-assignment-area').style.display='block';
+  renderAssignmentList();
+  if (activeAssignmentId) renderHwTracker();
+}
+
+function addAssignment() {
+  const title   = document.getElementById('hw-title').value.trim();
+  const subject = document.getElementById('hw-subject').value.trim();
+  const due     = document.getElementById('hw-due').value;
+  if (!title) { showToast('⚠️','Sila masukkan tajuk kerja rumah!'); return; }
+  if (!students.length) { showToast('⚠️','Tiada pelajar. Tetapkan kelas dahulu.'); return; }
+
+  const records = {};
+  students.forEach(s => { records[s.name] = { status: null, note: '' }; });
+
+  const assignment = { id: Date.now(), title, subject, due, records };
+  assignments.push(assignment);
+  activeAssignmentId = assignment.id;
+
+  document.getElementById('hw-title').value='';
+  saveToStorage();
+  renderHwSection();
+  showToast('📚',`Tugasan "${title}" berjaya ditambah!`);
+}
+
+function deleteAssignment(id, e) {
+  e.stopPropagation();
+  if (!confirm('Padam tugasan ini?')) return;
+  assignments = assignments.filter(a=>a.id!==id);
+  if (activeAssignmentId===id) activeAssignmentId = assignments.length ? assignments[assignments.length-1].id : null;
+  saveToStorage(); renderHwSection();
+  showToast('🗑','Tugasan dipadam.');
+}
+
+function selectAssignment(id) {
+  activeAssignmentId = id;
+  renderAssignmentList();
+  renderHwTracker();
+}
+
+function renderAssignmentList() {
+  const list = document.getElementById('assignment-list');
+  if (!assignments.length) {
+    list.innerHTML=`<div class="empty-state"><div class="big-icon">📭</div><h3>Tiada tugasan lagi</h3><p>Tambah kerja rumah pertama menggunakan borang di atas.</p></div>`;
+    document.getElementById('hw-tracker').style.display='none';
+    return;
+  }
+  list.innerHTML = assignments.map(a => {
+    const total   = students.length;
+    const hantar  = Object.values(a.records).filter(r=>r.status==='hantar'||r.status==='lewat').length;
+    const pct     = total ? Math.round(hantar/total*100) : 0;
+    const cls     = pct>=80?'good':pct>=50?'mid':'bad';
+    const isSelected = a.id===activeAssignmentId;
+    return `<div class="assignment-card ${isSelected?'selected':''}" onclick="selectAssignment(${a.id})">
+      <div class="a-icon">📋</div>
+      <div class="a-info">
+        <div class="a-title">${escHtml(a.title)}</div>
+        <div class="a-meta">${escHtml(a.subject||'—')} &nbsp;·&nbsp; Hantar: ${a.due?formatDateShort(a.due):'—'}</div>
+      </div>
+      <div class="a-progress">
+        <div class="a-pct ${cls}">${pct}%</div>
+        <div class="a-sub">${hantar}/${total} hantar</div>
+      </div>
+      <button class="a-delete" onclick="deleteAssignment(${a.id},event)" title="Padam">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// KERJA RUMAH — TRACKER TABLE
+// ══════════════════════════════════════
+function getActiveAssignment() { return assignments.find(a=>a.id===activeAssignmentId)||null; }
+
+function renderHwTracker() {
+  const a = getActiveAssignment();
+  if (!a) { document.getElementById('hw-tracker').style.display='none'; return; }
+  document.getElementById('hw-tracker').style.display='block';
+  document.getElementById('hw-tracker-title').textContent = a.title;
+  document.getElementById('hw-tracker-due').textContent = a.due ? 'Hantar: ' + formatDateShort(a.due) : '—';
+  updateHwStats(a);
+  renderHwTable();
+}
+
+function renderHwTable() {
+  const a = getActiveAssignment(); if (!a) return;
+  const q = document.getElementById('hw-search')?.value.toLowerCase()||'';
+  const tbody = document.getElementById('hw-tbody');
+
+  const visible = students.filter(s => {
+    const rec = a.records[s.name] || { status:null, note:'' };
+    return (!q||s.name.toLowerCase().includes(q)) &&
+           (hwFilter==='semua'||rec.status===hwFilter);
+  });
+
+  if (!visible.length) {
+    tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="big-icon">🔍</div><h3>Tiada pelajar ditemui</h3><p>Cuba ubah carian atau penapis.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = visible.map(s => {
+    const idx = students.indexOf(s);
+    const rec = a.records[s.name] || { status:null, note:'' };
+    const pct = rec.status ? 100 : 0;
+    return `<tr>
+      <td class="no-col">${idx+1}</td>
+      <td class="name-col">${escHtml(s.name)}</td>
+      <td><div class="status-group">
+        <button class="hw-btn hantar ${rec.status==='hantar'?'active':''}" onclick="setHwStatus('${escHtml(s.name)}','hantar')">✅ Hantar</button>
+        <button class="hw-btn lewat  ${rec.status==='lewat' ?'active':''}" onclick="setHwStatus('${escHtml(s.name)}','lewat')">⏰ Lewat</button>
+        <button class="hw-btn belum  ${rec.status==='belum' ?'active':''}" onclick="setHwStatus('${escHtml(s.name)}','belum')">❌ Belum</button>
+      </div></td>
+      <td><input class="note-input" type="text" placeholder="nota..." value="${escHtml(rec.note)}" onchange="setHwNote('${escHtml(s.name)}',this.value)" /></td>
+      <td class="progress-col"><div class="mini-bar"><div class="mini-bar-fill purple" style="width:${pct}%"></div></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function setHwStatus(name, st) {
+  const a = getActiveAssignment(); if (!a) return;
+  if (!a.records[name]) a.records[name] = { status:null, note:'' };
+  a.records[name].status = a.records[name].status===st ? null : st;
+  updateHwStats(a); renderHwTable(); renderAssignmentList(); saveToStorage();
+}
+function setHwNote(name, val) {
+  const a = getActiveAssignment(); if (!a) return;
+  if (!a.records[name]) a.records[name] = { status:null, note:'' };
+  a.records[name].note = val; saveToStorage();
+}
+
+function updateHwStats(a) {
+  const total  = students.length;
+  const hantar = Object.values(a.records).filter(r=>r.status==='hantar').length;
+  const lewat  = Object.values(a.records).filter(r=>r.status==='lewat').length;
+  const belum  = Object.values(a.records).filter(r=>r.status==='belum').length;
+  document.getElementById('hw-stat-total').textContent  = total;
+  document.getElementById('hw-stat-hantar').textContent = hantar;
+  document.getElementById('hw-stat-lewat').textContent  = lewat;
+  document.getElementById('hw-stat-belum').textContent  = belum;
+}
+
+function hwMarkAll(st) {
+  const a = getActiveAssignment(); if (!a) return;
+  students.forEach(s => { if (!a.records[s.name]) a.records[s.name]={status:null,note:''}; a.records[s.name].status=st; });
+  updateHwStats(a); renderHwTable(); renderAssignmentList(); saveToStorage();
+  showToast('✅','Semua pelajar ditandakan Hantar.');
+}
+function hwResetAll() {
+  const a = getActiveAssignment(); if (!a) return;
+  students.forEach(s => { if (a.records[s.name]) a.records[s.name].status=null; });
+  updateHwStats(a); renderHwTable(); renderAssignmentList(); saveToStorage();
+  showToast('↺','Semua status dikosongkan.');
+}
+
+function setHwFilter(f,el) {
+  hwFilter=f;
+  document.querySelectorAll('#section-kerja .filter-btn').forEach(b=>{b.classList.remove('active');b.classList.remove('active-purple');});
+  el.classList.add('active'); el.classList.add('active-purple');
+  renderHwTable();
+}
+
+function exportHwCSV() {
+  const a = getActiveAssignment(); if (!a) return;
+  let csv='No.,Nama,Status,Nota\n';
+  students.forEach((s,i)=>{
+    const rec=a.records[s.name]||{status:'',note:''};
+    csv+=`${i+1},"${s.name}","${rec.status||''}","${rec.note}"\n`;
+  });
+  dlCSV(csv,`kerjarumah_${a.title.replace(/\s+/g,'_')}.csv`);
+  showToast('⬇','Fail CSV dimuat turun!');
+}
+
+// sync new students to existing assignments
+function syncStudentsToAssignments() {
+  assignments.forEach(a => {
+    students.forEach(s => {
+      if (!a.records[s.name]) a.records[s.name] = { status:null, note:'' };
+    });
+  });
+  saveToStorage();
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let toastTimer;
+function showToast(icon,msg) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  const t=document.getElementById('toast'); t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ══════════════════════════════════════
+// LOCAL STORAGE
+// ══════════════════════════════════════
+function saveToStorage() {
+  const kelas  = document.getElementById('att-class-title').textContent;
+  const tarikh = document.getElementById('class-date').value||today();
+  localStorage.setItem('mg_students',   JSON.stringify(students));
+  localStorage.setItem('mg_kelas',      kelas);
+  localStorage.setItem('mg_tarikh',     tarikh);
+  localStorage.setItem('mg_class_inp',  document.getElementById('class-name').value);
+  localStorage.setItem('mg_stu_inp',    document.getElementById('student-list-input').value);
+  localStorage.setItem('mg_history',    JSON.stringify(history));
+  localStorage.setItem('mg_assignments',JSON.stringify(assignments));
+  localStorage.setItem('mg_activeHw',   activeAssignmentId||'');
+}
+function loadFromStorage() {
+  try {
+    const ss = localStorage.getItem('mg_students');
+    const sk = localStorage.getItem('mg_kelas');
+    const st = localStorage.getItem('mg_tarikh');
+    const sh = localStorage.getItem('mg_history');
+    const si = localStorage.getItem('mg_class_inp');
+    const su = localStorage.getItem('mg_stu_inp');
+    const sa = localStorage.getItem('mg_assignments');
+    const sac= localStorage.getItem('mg_activeHw');
+
+    if (sh) history = JSON.parse(sh);
+    renderHistory();
+    if (si) document.getElementById('class-name').value=si;
+    if (su) document.getElementById('student-list-input').value=su;
+    if (sa) assignments = JSON.parse(sa);
+    if (sac && sac!=='null' && sac!=='') activeAssignmentId=parseInt(sac);
+
+    if (ss && JSON.parse(ss).length) {
+      students = JSON.parse(ss);
+      if (sk) document.getElementById('att-class-title').textContent=sk;
+      if (st) { document.getElementById('att-date-badge').textContent=st.split('-').reverse().join('/'); document.getElementById('class-date').value=st; }
+      document.getElementById('attendance-area').style.display='block';
+      document.getElementById('setup-card').style.display='none';
+      renderTable(); updateStats();
+    }
+  } catch(e) { console.log('Storage error',e); }
+}
+
+// close modals on overlay click
+['export-modal','add-student-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
